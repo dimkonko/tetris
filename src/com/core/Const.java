@@ -15,6 +15,11 @@ public class Const {
 	
 	public static final int MB = 1024 * 1024;
 	
-	public static final int MAX_TIME = 40 * 16;
+	public static final int MAX_TIME = 34 * 16;
 	public static final int MAX_TIME_ACCELERATED = 10 * 16;
+
+	public static final int FACING_RIGHT = 0;
+	public static final int FACING_LEFT = 1;
+	public static final int FACING_UP = 2;
+	public static final int FACING_DOWN = 3;
 }

@@ -12,8 +12,9 @@ import org.newdawn.slick.state.StateBasedGame;
 
 import com.core.Const;
 import com.core.enums.BlockType;
-import com.core.figure.BasicBlock;
-import com.core.figure.Figure;
+import com.core.figures.BasicBlock;
+import com.core.figures.Figure;
+import com.core.figures.Line;
 
 public class Grid extends BasicGameState {
 	
@@ -24,9 +25,8 @@ public class Grid extends BasicGameState {
 	private final int[][] placedBlocks;
 	
 	private boolean isMovedLeft, isMovedRight;
-	private boolean isAccelerated;
+	private boolean isAccelerated, isTurned;
 	private boolean isPaused;
-	private boolean isNewFigure;
 	
 	private int timeCounter;
 	
@@ -54,7 +54,7 @@ public class Grid extends BasicGameState {
 		
 		isPaused = false;
 		
-		figure = new BasicBlock(grid[Const.START_ID][0].getID());
+		figure = new Line(grid[Const.START_ID][0].getID());
 		setFigure(figure.getFigure(), BlockType.MOVED);
 		
 		timeCounter = Const.MAX_TIME;
@@ -86,7 +86,12 @@ public class Grid extends BasicGameState {
 		
 		if(timeCounter <= 0) {
 			setFigure(figure.getFigure(), BlockType.BG);  // Cleaning figure
-
+			
+			if(isTurned && canTurn(figure.getNextFacing())) {
+				figure.turn();
+				isTurned = false;
+			}
+			
 			if(isMovedLeft && canMoveLeft(figure.getFigure())) {
 				figure.moveLeft();
 			}
@@ -137,8 +142,12 @@ public class Grid extends BasicGameState {
 			}
 		}
 		
-		if(key == Input.KEY_DOWN || key == Input.KEY_SPACE) {
+		if(key == Input.KEY_DOWN) {
 			isAccelerated = true;
+		}
+		
+		if(key == Input.KEY_UP) {
+			isTurned = true;
 		}
 	}
 	
@@ -153,7 +162,7 @@ public class Grid extends BasicGameState {
 			}
 		}
 		
-		if(key == Input.KEY_DOWN || key == Input.KEY_SPACE) {
+		if(key == Input.KEY_DOWN) {
 			isAccelerated = false;
 		}
 		
@@ -167,7 +176,8 @@ public class Grid extends BasicGameState {
 	
 	public boolean canMoveDown(Point[] figure) {
 		for(int f = 0; f < figure.length; f++) {
-			if(figure[f].y + 1 >= Const.LINES ) {
+			if(figure[f].y + 1 >= Const.LINES ||
+					placedBlocks[figure[f].x][figure[f].y + 1] == 1) {
 				System.out.println("can't move down");
 				return false;
 			}
@@ -177,7 +187,8 @@ public class Grid extends BasicGameState {
 	
 	public boolean canMoveLeft(Point[] figure) {
 		for(int f = 0; f < figure.length; f++) {
-			if(figure[f].x - 1 < 0) {
+			if(figure[f].x - 1 < 0 ||
+					placedBlocks[figure[f].x - 1][figure[f].y] == 1) {
 				System.out.println("can't move left");
 				return false;
 			}
@@ -187,12 +198,24 @@ public class Grid extends BasicGameState {
 	
 	public boolean canMoveRight(Point[] figure) {
 		 for(int f = 0; f < figure.length; f++) {
-			if(figure[f].x + 1 >= Const.COLUMNS) {
+			if(figure[f].x + 1 >= Const.COLUMNS ||
+					placedBlocks[figure[f].x + 1][figure[f].y] == 1) {
 				System.out.println("can't move right");
 				return false;
 			}
 		}
 		return true;
+	}
+	
+	private boolean canTurn(Point[] figure) {
+		for(int f = 0; f < figure.length; f++) {
+			if(figure[f].y + 1 > Const.LINES ||
+					placedBlocks[figure[f].x][figure[f].y] == 1) {
+				System.out.println("can't turn");
+				return false;
+			}
+		}
+		return true;		
 	}
 	
 	private void setFigure(Point[] figureID, BlockType type) {
@@ -211,6 +234,6 @@ public class Grid extends BasicGameState {
 			grid[figureID[f].x][figureID[f].y].setType(BlockType.PLACED);
 			placedBlocks[figureID[f].x][figureID[f].y] = 1;
 		}
-		figure  = new BasicBlock(grid[Const.START_ID][0].getID());
+		figure  = new Line(grid[Const.START_ID][0].getID());
 	}
 }
