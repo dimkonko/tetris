@@ -53,7 +53,6 @@ public abstract class Figure {
 			else {
 				curFacing++;
 			}
-			System.out.println(curFacing);
 			figure = facing[curFacing];
 			
 			
