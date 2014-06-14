@@ -1,6 +1,8 @@
 package com.core.grid;
 
+import java.awt.List;
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.Random;
 
 import org.newdawn.slick.GameContainer;
@@ -34,6 +36,8 @@ public class Grid extends BasicGameState {
 	
 	private Figure figure;
 	
+	private ArrayList<Integer> blockToRemove = new ArrayList<Integer>();
+	
 	public Grid() {
 		
 		figures_count = 4 - 1;
@@ -63,6 +67,11 @@ public class Grid extends BasicGameState {
 		for(int x = 0; x < Const.COLUMNS - 1; x++) {
 			grid[x][Const.LINES - 1].placeFigure(true);
 			grid[x][Const.LINES - 2].placeFigure(true);
+			
+			if(x != Const.COLUMNS - 2) {
+				grid[x][Const.LINES - 3].placeFigure(true);
+				grid[x][Const.LINES - 4].placeFigure(true);
+			}
 		}
 	}
 
@@ -92,18 +101,32 @@ public class Grid extends BasicGameState {
 		// Check if pause button pressed
 		gc.setPaused(isPaused);
 		
+		if(!blockToRemove.isEmpty()) {
+			if(grid[0][blockToRemove.get(0)].isAnimStoped()) {
+				removeBlocks();
+				blockToRemove.clear();
+			}
+		}
+		
+		gc.sleep(Const.SLEEP_TIME);
+		
+		// Check if can move left or right
+		if(isMovedLeft && canMoveLeft(figure.getFigure())) {
+			setFigureType(figure.getFigure(), BlockType.BG);
+			figure.moveLeft();
+			setFigureType(figure.getFigure(), BlockType.MOVED);
+		}
+		else
+			if(isMovedRight && canMoveRight(figure.getFigure())){
+				setFigureType(figure.getFigure(), BlockType.BG);
+				figure.moveRight();
+				setFigureType(figure.getFigure(), BlockType.MOVED);
+			}
+		
 		if(timeCounter <= 0) {
+			
 			// Cleaning figure
 			setFigureType(figure.getFigure(), BlockType.BG);
-			
-			// Check if can move left or right
-			if(isMovedLeft && canMoveLeft(figure.getFigure())) {
-				figure.moveLeft();
-			}
-			else
-				if(isMovedRight && canMoveRight(figure.getFigure())){
-					figure.moveRight();
-				}
 			
 			// Check if figure can move down
 			if(canMoveDown(figure.getFigure())) {				
@@ -114,17 +137,13 @@ public class Grid extends BasicGameState {
 					gc.exit();
 				}
 				// If can't - init new figure and exit from the method
-				initNewFigure(figure.getFigure());
-				return;
+				initNewFigure(figure.getFigure());				
 			}
 			
 			// Draw figure again;
 			setFigureType(figure.getFigure(), BlockType.MOVED);  // Draw new figure
 			
-			if(isAccelerated) {
-				timeCounter = Const.MAX_TIME_ACCELERATED;
-			}
-			else {
+			if(!isAccelerated) {
 				timeCounter = Const.MAX_TIME;
 			}
 		}
@@ -133,11 +152,13 @@ public class Grid extends BasicGameState {
 		}
 		
 		// Check if figure can turn
-		if(isTurned && canMoveDown(figure.getNextFacing())) {
-			setFigureType(figure.getFigure(), BlockType.BG);  // Cleaning figure
-			figure.turn();
+		if(isTurned) {
+			if(canTurn(figure.getNextFacing())) {
+				setFigureType(figure.getFigure(), BlockType.BG);  // Cleaning figure
+				figure.turn();
+				setFigureType(figure.getFigure(), BlockType.MOVED);  // Draw new figure
+			}
 			isTurned = false;
-			setFigureType(figure.getFigure(), BlockType.MOVED);  // Draw new figure
 		}
 	}
 
@@ -167,6 +188,13 @@ public class Grid extends BasicGameState {
 		if(key == Input.KEY_UP) {
 			isTurned = true;
 		}
+		
+		if(key == Input.KEY_ESCAPE) {
+			if(isPaused)
+				isPaused = false;
+			else
+				isPaused = true;
+		}
 	}
 	
 	@Override
@@ -182,16 +210,9 @@ public class Grid extends BasicGameState {
 		if(key == Input.KEY_DOWN) {
 			isAccelerated = false;
 		}
-		
-		if(key == Input.KEY_ESCAPE) {
-			if(isPaused)
-				isPaused = false;
-			else
-				isPaused = true;
-		}
 	}
 	
-	public boolean canMoveDown(Point[] figure) {
+	private boolean canMoveDown(Point[] figure) {
 		/*
 		 * This method check next move down
 		 * if there is not last line underneath
@@ -206,7 +227,7 @@ public class Grid extends BasicGameState {
 		return true;
 	}
 	
-	public boolean canMoveLeft(Point[] figure) {
+	private boolean canMoveLeft(Point[] figure) {
 		/*
 		 * This method check next move left
 		 * if there is not last column on the left
@@ -221,7 +242,7 @@ public class Grid extends BasicGameState {
 		return true;
 	}
 	
-	public boolean canMoveRight(Point[] figure) {
+	private boolean canMoveRight(Point[] figure) {
 		/*
 		 * This method check next move right
 		 * if there is not last column on the right
@@ -230,6 +251,18 @@ public class Grid extends BasicGameState {
 		 for(int f = 0; f < figure.length; f++) {
 			if(figure[f].x + 1 >= Const.COLUMNS ||
 					grid[figure[f].x + 1][figure[f].y].getPlacedStatus() == 1) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	private boolean canTurn(Point[] figure) {
+		for(int f = 0; f < figure.length; f++) {
+			if(figure[f].x < 0 || figure[f].x >= Const.COLUMNS ||
+					figure[f].y >= Const.LINES ||
+					grid[figure[f].x][figure[f].y].getPlacedStatus() == 1) {
+				System.out.println("Can't turn");
 				return false;
 			}
 		}
@@ -245,26 +278,12 @@ public class Grid extends BasicGameState {
 		return false;
 	}
 	
-//	private boolean canTurn(Point[] figure) {
-//		/*
-//		 * This method check next move down
-//		 * if there is not last column on the left
-//		 * if there is not placed block on the left
-//		 */
-//		for(int f = 0; f < figure.length; f++) {
-//			if(figure[f].y + 1 > Const.LINES ||
-//					grid[figure[f].x][figure[f].y].getPlacedStatus() == 1) {
-//				return false;
-//			}
-//		}
-//		return true;		
-//	}
-	
 	private void initFigure() {
 		/*
 		 * This method inits new figure and set status to 'moved'
 		 */
-		switch (rand.nextInt(figures_count)) {
+		switch (1//rand.nextInt(figures_count)
+				) {
 		case 0:
 			figure = new BlockShape();
 			break;
@@ -279,6 +298,7 @@ public class Grid extends BasicGameState {
 			break;
 		}
 		setFigureType(figure.getFigure(), BlockType.MOVED);
+		isAccelerated = false;
 	}
 	
 	private void setFigureType(Point[] figureID, BlockType type) {
@@ -302,31 +322,42 @@ public class Grid extends BasicGameState {
 		// Check if line is full
 		int counter = 0;
 		
-		for(int y = Const.LINES - 1; y > 0; y--) {
+		for(int y = 0; y < Const.LINES; y++) {
 			for(int x = 0; x < Const.COLUMNS; x++) {
 				counter += grid[x][y].getPlacedStatus();
 			}
 			
-			/* If counter == COLUMNS it's means, that all
-			 *  blocks at this line is 'placed'
+			/* 
+			 * If counter == COLUMNS it's means, that all
+			 * blocks at this line is 'placed'
 			 */
-			if(counter == Const.COLUMNS) {				
-				for(int bx = 0; bx < counter; bx++) {
-					grid[bx][y].setType(BlockType.BG);
-					grid[bx][y].setPlacedStatus(0);
-	
-					for(int by = Const.LINES - 1; by > 0; by--) {
-						grid[bx][by].setType(grid[bx][by - 1].getType());						
-						grid[bx][by].setPlacedStatus((grid[bx][by - 1].getPlacedStatus()));
-					}
+			if(counter == Const.COLUMNS) {
+				blockToRemove.add(y);
+				for(int x = 0; x < counter; x++) {
+					grid[x][y].setAnimPlaying(true);
 				}
 				
 				/*	And make it loop again,
 				 *  because its can be one more full line
 				 */
-				y++;
+				//y = Const.LINES;
 			}
 			counter = 0;
+		}
+	}
+	
+	private void removeBlocks() {
+		for(int y : blockToRemove) {
+			//System.out.println(y);
+			for(int bx = 0; bx < Const.COLUMNS; bx++) {		
+				grid[bx][y].resetAnim();
+				for(int by = y; by > 0; by--) {		
+					grid[bx][by].setPlacedStatus((grid[bx][by - 1].getPlacedStatus()));
+					
+					if(grid[bx][by - 1].getType() != BlockType.MOVED)
+						grid[bx][by].setType(grid[bx][by - 1].getType());
+				}
+			}
 		}
 	}
 	
@@ -345,5 +376,4 @@ public class Grid extends BasicGameState {
 		// Init new Figure
 		initFigure();
 	}
-	
 }

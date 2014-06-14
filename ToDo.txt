@@ -3,7 +3,6 @@
 2. Add placement on other blocks
 
 11.06.2014
-	From 10.06.2014
 	Done 1.
 	Done 2.
 3. Add more figures
@@ -11,8 +10,12 @@
 5. Add line clearing and add scores
 
 13.06.2014
-	From 11.06.2014
 	Done 3.
 	Done 4.
 	Done 5.
-6. Fix line clearing bug/
+6. Fix line clearing bug
+
+14.03.2014
+	Done 6,
+7. Add clear line animation.
+	Done 7.

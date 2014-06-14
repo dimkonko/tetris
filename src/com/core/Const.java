@@ -20,8 +20,8 @@ public class Const {
 	public static final Point START_ID = new Point(COLUMNS / 2 - 1, 0);
 	
 	// Time
-	public static final int MAX_TIME = 34 * 16;
-	public static final int MAX_TIME_ACCELERATED = 10 * 16;
+	public static final int SLEEP_TIME = 60;
+	public static final int MAX_TIME = 300;
 	
 	// Figure
 	public static final int FIGURE_LENGTH_SIMPLE = 2;

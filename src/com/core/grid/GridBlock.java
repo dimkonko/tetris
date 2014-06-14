@@ -2,7 +2,9 @@ package com.core.grid;
 
 import java.awt.Point;
 
+import org.newdawn.slick.Animation;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.SpriteSheet;
 
 import com.core.Const;
 import com.core.GameObject;
@@ -12,9 +14,13 @@ public class GridBlock extends GameObject {
 	
 	private final Point id;
 	
+	private boolean isAnimPlaying;
+	
 	private int placedStatus;
 	
 	private BlockType type;	
+	
+	private Animation anim;
 	
 	public GridBlock(float x, float y, Point id, BlockType type) {
 		super(x, y);
@@ -22,11 +28,22 @@ public class GridBlock extends GameObject {
 		this.id = id;
 		this.type = type;
 		
+		isAnimPlaying = false;
+		
 		placedStatus = 0;
+		
+		anim = new Animation(new SpriteSheet(BlockType.Animation.getImage(),
+				Const.SIZE, Const.SIZE), 30);
+		anim.setLooping(false);
 	}
 	
 	public void render(Graphics g) {
-		type.getImage().draw(x, y, Const.SIZE, Const.SIZE);
+		if(isAnimPlaying) {
+			anim.draw(x, y);
+		}
+		else {
+			type.getImage().draw(x, y, Const.SIZE, Const.SIZE);
+		}
 	}
 	
 	public void placeFigure(boolean isPlaced) {
@@ -40,6 +57,15 @@ public class GridBlock extends GameObject {
 		}
 	}
 	
+	public void resetAnim() {
+		anim.restart();
+		isAnimPlaying = false;
+	}
+	
+	public void startAnim() {
+		anim.start();
+	}
+	
 	public Point getID() {
 		return id;
 	}
@@ -48,8 +74,16 @@ public class GridBlock extends GameObject {
 		return type;
 	}
 	
+	public boolean isAnimStoped() {
+		return anim.isStopped();
+	}
+	
 	public int getPlacedStatus() {
 		return placedStatus;
+	}
+	
+	public void setAnimPlaying(boolean b) {
+		this.isAnimPlaying = b;
 	}
 	
 	public void setType(BlockType type) {

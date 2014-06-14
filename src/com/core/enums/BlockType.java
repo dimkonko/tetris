@@ -8,7 +8,8 @@ import com.core.Strings;
 public enum BlockType {
 	BG(Strings.BLOCK_BG),
 	MOVED(Strings.BLOCK_MOVED),
-	PLACED(Strings.BLOCK_PLACED);
+	PLACED(Strings.BLOCK_PLACED),
+	Animation(Strings.BLOCK_ANIMATION);
 	
 	private Image img;
 	

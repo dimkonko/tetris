@@ -54,8 +54,6 @@ public abstract class Figure {
 				curFacing++;
 			}
 			figure = facing[curFacing];
-			
-			
 		}
 	}
 	
